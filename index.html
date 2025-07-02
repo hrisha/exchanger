@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Currency Exchange Profit Calculator</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: bold;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    .btn {
+      padding: 0.7rem 1.2rem;
+      background-color: #0066cc;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #0052a3;
+    }
+
+    .best {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: green;
+    }
+
+    .flex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>💱 Currency Exchange Profit Simulator</h2>
+
+    <div class="input-group">
+      <label for="nisInput">Amount in NIS:</label>
+      <input type="number" id="nisInput" value="3500" />
+    </div>
+
+    <div class="section-title">Bank A Rates</div>
+    <div class="flex-grid">
+      <div>
+        <label>NIS to USD</label>
+        <input type="number" id="a_nis_usd" value="3.39627" step="0.0001">
+      </div>
+      <div>
+        <label>NIS to JOD</label>
+        <input type="number" id="a_nis_jod" value="4.7801" step="0.0001">
+      </div>
+    </div>
+
+    <div class="section-title">Bank I Rates</div>
+    <div class="flex-grid">
+      <div>
+        <label>NIS to USD</label>
+        <input type="number" id="i_nis_usd" value="3.3921" step="0.0001">
+      </div>
+      <div>
+        <label>NIS to JOD</label>
+        <input type="number" id="i_nis_jod" value="4.8494" step="0.0001">
+      </div>
+    </div>
+
+    <div class="section-title">Exchange Center Rates</div>
+    <div class="flex-grid">
+      <div>
+        <label>USD to NIS</label>
+        <input type="number" id="xc_usd_nis" value="3.5" step="0.0001">
+      </div>
+      <div>
+        <label>JOD to NIS</label>
+        <input type="number" id="xc_jod_nis" value="5" step="0.0001">
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top: 2rem;">
+      <button class="btn" onclick="calculateProfit()">💰 Calculate Profit</button>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    function calculateProfit() {
+      const nisAmount = parseFloat(document.getElementById("nisInput").value);
+      if (isNaN(nisAmount) || nisAmount <= 0) {
+        alert("Enter a valid NIS amount.");
+        return;
+      }
+
+      const rates = {
+        bankA: {
+          nisToUsd: parseFloat(document.getElementById("a_nis_usd").value),
+          nisToJod: parseFloat(document.getElementById("a_nis_jod").value),
+        },
+        bankI: {
+          nisToUsd: parseFloat(document.getElementById("i_nis_usd").value),
+          nisToJod: parseFloat(document.getElementById("i_nis_jod").value),
+        },
+        xc: {
+          usdToNis: parseFloat(document.getElementById("xc_usd_nis").value),
+          jodToNis: parseFloat(document.getElementById("xc_jod_nis").value),
+        }
+      };
+
+      const simulations = [
+        {
+          label: "Bank A → USD → Exchange Center",
+          currency: "USD",
+          foreign: nisAmount / rates.bankA.nisToUsd,
+          finalNis: (nisAmount / rates.bankA.nisToUsd) * rates.xc.usdToNis
+        },
+        {
+          label: "Bank I → USD → Exchange Center",
+          currency: "USD",
+          foreign: nisAmount / rates.bankI.nisToUsd,
+          finalNis: (nisAmount / rates.bankI.nisToUsd) * rates.xc.usdToNis
+        },
+        {
+          label: "Bank A → JOD → Exchange Center",
+          currency: "JOD",
+          foreign: nisAmount / rates.bankA.nisToJod,
+          finalNis: (nisAmount / rates.bankA.nisToJod) * rates.xc.jodToNis
+        },
+        {
+          label: "Bank I → JOD → Exchange Center",
+          currency: "JOD",
+          foreign: nisAmount / rates.bankI.nisToJod,
+          finalNis: (nisAmount / rates.bankI.nisToJod) * rates.xc.jodToNis
+        }
+      ];
+
+      let best = { label: "", profit: -Infinity };
+
+      let table = `
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Foreign Received</th>
+              <th>Final NIS</th>
+              <th>Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      simulations.forEach(sim => {
+        const profit = sim.finalNis - nisAmount;
+        if (profit > best.profit) {
+          best = { label: sim.label, profit };
+        }
+
+        table += `
+          <tr>
+            <td>${sim.label}</td>
+            <td>${sim.foreign.toFixed(2)} ${sim.currency}</td>
+            <td>${sim.finalNis.toFixed(2)} NIS</td>
+            <td style="color: ${profit > 0 ? 'green' : 'red'}">${profit.toFixed(2)} NIS</td>
+          </tr>
+        `;
+      });
+
+      table += `</tbody></table>`;
+      table += `<div class="best">📈 Best Option: ${best.label} — Profit: ${best.profit.toFixed(2)} NIS</div>`;
+
+      document.getElementById("results").innerHTML = table;
+    }
+  </script>
+</body>
+</html>
